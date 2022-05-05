@@ -26,6 +26,7 @@
 
 #include "OptionParser.hpp"
 #include "smithlab_os.hpp"
+#include "smithlab_utils.hpp" //for SMITHLAB_exception
 
 #include "merge.hpp"
 

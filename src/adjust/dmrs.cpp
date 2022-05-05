@@ -22,6 +22,7 @@
 #include <fstream>
 
 #include "OptionParser.hpp"
+#include "smithlab_utils.hpp" //for SMITHLAB_exception
 
 #include "locus.hpp"
 #include "merge.hpp"

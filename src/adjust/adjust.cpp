@@ -22,6 +22,7 @@
 #include <fstream>
 
 #include "OptionParser.hpp"
+#include "smithlab_utils.hpp" //for SMITHLAB_exception
 
 #include "pvallocus.hpp"
 #include "bin_for_distance.hpp"

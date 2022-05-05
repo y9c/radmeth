@@ -27,6 +27,7 @@
 // smithlab headers
 #include "OptionParser.hpp"
 #include "smithlab_os.hpp"
+#include "smithlab_utils.hpp" //for SMITHLAB_exception
 
 // headers for local code
 #include "table_splitter.hpp"

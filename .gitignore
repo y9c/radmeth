@@ -19,3 +19,6 @@ src/wand/tests/test_regression
 src/wand/tests/test_table_row
 src/adjust/stoufferliptak
 src/adjust/tests/test_adjust.sublime-workspace
+
+# cache
+.ccls-cache
