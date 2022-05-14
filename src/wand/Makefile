@@ -21,11 +21,9 @@ LIBS += -lgsl -lgslcblas
 INCLUDE_DIRS = $(SMITHLAB_CPP)
 INCLUDE_ARGS = $(addprefix -I,$(INCLUDE_DIRS))
 
-SMITH_OBJ = $(addprefix $(SMITHLAB_CPP)/, GenomicRegion.o smithlab_os.o \
-            smithlab_utils.o OptionParser.o)
+SMITH_OBJ = $(addprefix $(SMITHLAB_CPP)/, GenomicRegion.o smithlab_os.o smithlab_utils.o OptionParser.o)
 							
-OBJ = design.o regression.o loglikratio_test.o table_row.o pipeline.o \
-      gsl_fitter.o $(SMITH_OBJ)
+OBJ = design.o regression.o loglikratio_test.o table_row.o pipeline.o gsl_fitter.o $(SMITH_OBJ)
 
 $(BIN_DIR)/wand : wand.cpp $(OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(INCLUDE_ARGS) $(LIBS)

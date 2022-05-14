@@ -1,14 +1,16 @@
 
 ifndef GMOCK_DIR
-$(error Must define GMOCK_DIR variable)
+# $(error Must define GMOCK_DIR variable)
+GMOCK_DIR=/usr/include/gmock/
 endif
 
 ifndef SMITHLAB_CPP
-SMITHLAB_CPP=../../smithlab_cpp/
+SMITHLAB_CPP=../../../smithlab_cpp/
 endif
 
 # The directory gtest must be located inside GMOCK
-GTEST_DIR = ${GMOCK_DIR}/gtest
+#GTEST_DIR = ${GMOCK_DIR}/gtest
+GMOCK_DIR=/usr/include/gmock/
 
 # Directory with the code to be tested.
 CODE_DIR = ..
