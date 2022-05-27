@@ -1,0 +1,5 @@
+                base    case
+control_a       1       0
+control_b       1       0
+case_a          1       1
+case_b          1       1
