@@ -30,26 +30,29 @@
 #include "design.hpp"
 
 class Regression {
-public:
+ public:
   Regression() : num_parameters_(0), maximum_likelihood_(0) {}
-  Regression(const Design &design) 
-    : design_(design), num_parameters_(design_.num_factors() + 1), 
-      maximum_likelihood_(0) {}
+  Regression(const Design& design)
+      : design_(design),
+        num_parameters_(design_.num_factors() + 1),
+        maximum_likelihood_(0) {}
   Design design() const { return design_; }
-  void set_response(const std::vector<size_t> &response_total, 
-                    const std::vector<size_t> &response_meth);
+  void set_response(
+      const std::vector<size_t>& response_total,
+      const std::vector<size_t>& response_meth);
   std::vector<size_t> response_total() const { return response_total_; }
-  std::vector<size_t> response_meth() const {return response_meth_; }
-  double p(size_t sample, const gsl_vector *v) const;
-  double loglik(const gsl_vector *parameters) const;
-  void gradient(const gsl_vector *parameters, gsl_vector *output) const;
+  std::vector<size_t> response_meth() const { return response_meth_; }
+  double p(size_t sample, const gsl_vector* v) const;
+  double loglik(const gsl_vector* parameters) const;
+  void gradient(const gsl_vector* parameters, gsl_vector* output) const;
   std::vector<double> fitted_parameters() { return fitted_parameters_; }
   std::vector<double> fitted_distribution_parameters();
   double maximum_likelihood() { return maximum_likelihood_; }
   double min_methdiff(size_t factor);
   double log_fold_change(size_t factor);
-  friend bool gsl_fitter(Regression &r, std::vector<double> initial_parameters);
-private:
+  friend bool gsl_fitter(Regression& r, std::vector<double> initial_parameters);
+
+ private:
   Design design_;
   std::vector<size_t> response_total_;
   std::vector<size_t> response_meth_;
@@ -58,4 +61,4 @@ private:
   double maximum_likelihood_;
 };
 
-#endif //REGRESSION_HPP_
+#endif  // REGRESSION_HPP_

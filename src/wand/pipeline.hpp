@@ -23,13 +23,16 @@
 #include <sstream>
 #include <string>
 
-// The wand function executes the beta-binomial regresson pipeline. Parameters 
-// design_encoding and count_table_encoding are streams with the design matrix 
-// and the count table respectively. The test_factor_name parameter is the name 
-// of the factor with respect to which the differential methylation should be 
+// The wand function executes the beta-binomial regresson pipeline. Parameters
+// design_encoding and count_table_encoding are streams with the design matrix
+// and the count table respectively. The test_factor_name parameter is the name
+// of the factor with respect to which the differential methylation should be
 // tested. All of the output is sent to the out output stream.
 
-void wand(std::istream &design_encoding, std::istream &count_table_encoding, 
-          std::string test_factor_name, std::ostream &out);
+void wand(
+    std::istream& design_encoding,
+    std::istream& count_table_encoding,
+    std::string test_factor_name,
+    std::ostream& out);
 
-#endif //PIPELINE_HPP_
+#endif  // PIPELINE_HPP_

@@ -15,7 +15,7 @@
  *    GNU General Public License for more details.
  */
 
-// Contains declaration of the Design class whose objects store design 
+// Contains declaration of the Design class whose objects store design
 // matrices.
 
 #ifndef DESIGN_HPP_
@@ -37,24 +37,25 @@
 //  design.remove_factor(1);
 
 class Design {
-public:
+ public:
   Design() {}
-  Design(std::istream &is);
+  Design(std::istream& is);
   size_t num_factors() const { return factor_names_.size(); }
   size_t num_samples() const { return sample_names_.size(); }
   std::vector<std::string> factor_names() const { return factor_names_; }
   std::vector<std::string> sample_names() const { return sample_names_; }
   std::vector<std::vector<double> > matrix() const { return matrix_; }
-  double operator() (size_t sample, size_t factor) const;
+  double operator()(size_t sample, size_t factor) const;
   void remove_factor_name(std::string name);
   void remove_factor(size_t factor);
-  bool operator== (const Design &other_design) const;
-  bool operator!= (const Design &other_design) const;
-  friend std::ostream& operator<<(std::ostream& os, const Design &design);
-private:
+  bool operator==(const Design& other_design) const;
+  bool operator!=(const Design& other_design) const;
+  friend std::ostream& operator<<(std::ostream& os, const Design& design);
+
+ private:
   std::vector<std::string> factor_names_;
   std::vector<std::string> sample_names_;
   std::vector<std::vector<double> > matrix_;
 };
 
-#endif // DESIGN_HPP_
+#endif  // DESIGN_HPP_

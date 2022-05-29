@@ -24,7 +24,8 @@
 
 class Regression;
 
-bool gsl_fitter(Regression &r, 
-              std::vector<double> initial_parameters = std::vector<double> ());
+bool gsl_fitter(
+    Regression& r,
+    std::vector<double> initial_parameters = std::vector<double>());
 
-#endif // GSL_FITTER_HPP_
+#endif  // GSL_FITTER_HPP_

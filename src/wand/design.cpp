@@ -14,108 +14,100 @@
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  */
- 
+
 #include "design.hpp"
 
-#include "smithlab_utils.hpp" //for SMITHLAB_exception
+#include "smithlab_utils.hpp"  //for SMITHLAB_exception
 
-using std::istream; using std::string;
-using std::vector; using std::istringstream;
+using std::istream;
+using std::istringstream;
+using std::string;
+using std::vector;
 
-Design::Design(istream &is) {
+Design::Design(istream& is) {
   string header_encoding;
   getline(is, header_encoding);
 
   istringstream header_is(header_encoding);
   string header_name;
-  while (header_is >> header_name)
-    factor_names_.push_back(header_name);
-  
+  while (header_is >> header_name) factor_names_.push_back(header_name);
+
   string row;
   while (getline(is, row)) {
-
-    if (row.empty())
-      continue;
+    if (row.empty()) continue;
 
     istringstream row_is(row);
     string token;
     row_is >> token;
     sample_names_.push_back(token);
-    
+
     vector<double> matrix_row;
     while (row_is >> token) {
       if (token.length() == 1 && (token == "0" || token == "1"))
         matrix_row.push_back(token == "1");
       else
-        throw SMITHLABException("only binary factor levels are allowed:\n" 
-                                + row);
+        throw SMITHLABException(
+            "only binary factor levels are allowed:\n" + row);
     }
 
     if (matrix_row.size() != num_factors())
-      throw SMITHLABException("each row must have as many columns as "
-			      "factors:\n" + row);
+      throw SMITHLABException(
+          "each row must have as many columns as "
+          "factors:\n" +
+          row);
 
     matrix_.push_back(vector<double>());
     swap(matrix_.back(), matrix_row);
   }
 }
 
-double
-Design::operator() (size_t sample, size_t factor) const {
+double Design::operator()(size_t sample, size_t factor) const {
   return matrix_[sample][factor];
 }
 
-std::ostream&
-operator<<(std::ostream& os, const Design &design) {
-
-  for(size_t factor = 0; factor < design.num_factors(); ++factor) {
+std::ostream& operator<<(std::ostream& os, const Design& design) {
+  for (size_t factor = 0; factor < design.num_factors(); ++factor) {
     os << design.factor_names_[factor];
-    if (factor + 1 != design.num_factors())
-      os << "\t";
+    if (factor + 1 != design.num_factors()) os << "\t";
   }
   os << std::endl;
 
-  for(size_t sample = 0; sample < design.num_samples(); ++sample) {
+  for (size_t sample = 0; sample < design.num_samples(); ++sample) {
     os << design.sample_names_[sample] << "\t";
-    for(size_t factor = 0; factor < design.num_factors(); ++factor) {
+    for (size_t factor = 0; factor < design.num_factors(); ++factor) {
       os << design.matrix_[sample][factor];
-      if (factor + 1 != design.num_factors())
-        os << "\t";
+      if (factor + 1 != design.num_factors()) os << "\t";
     }
-      os << "\n";
+    os << "\n";
   }
   return os;
 }
 
-void 
-Design::remove_factor(size_t factor) {
+void Design::remove_factor(size_t factor) {
   factor_names_.erase(factor_names_.begin() + factor);
-  
+
   for (size_t sample = 0; sample < num_samples(); ++sample)
     matrix_[sample].erase(matrix_[sample].begin() + factor);
 }
 
-void 
-Design::remove_factor_name(std::string name) {
-  vector<string>::const_iterator name_it = 
-                std::find(factor_names_.begin(), factor_names_.end(), name);
-                
+void Design::remove_factor_name(std::string name) {
+  vector<string>::const_iterator name_it =
+      std::find(factor_names_.begin(), factor_names_.end(), name);
+
   if (name_it == factor_names_.end())
     throw SMITHLABException(name + " is not one of the factor names");
 
-  size_t factor =  name_it - factor_names_.begin();
+  size_t factor = name_it - factor_names_.begin();
 
   remove_factor(factor);
 }
 
-bool 
-Design::operator== (const Design &other_design) const {
+bool Design::operator==(const Design& other_design) const {
   return (factor_names_ == other_design.factor_names_) &&
-          (sample_names_ == other_design.sample_names_) &&
-          (matrix_ == other_design.matrix_);
+         (sample_names_ == other_design.sample_names_) &&
+         (matrix_ == other_design.matrix_);
 }
 
-bool 
-Design::operator!= (const Design &other_design) const {
+bool Design::operator!=(const Design& other_design) const {
   return !(*this == other_design);
 }

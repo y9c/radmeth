@@ -15,7 +15,7 @@
  *    GNU General Public License for more details.
  */
 
-// This file declares the loglikratio_test function which performs the 
+// This file declares the loglikratio_test function which performs the
 // log-likelihood ratio test.
 
 #ifndef LOGLIKRATIO_TEST_
@@ -26,4 +26,4 @@
 // than the full model and so the number of degrees of freedom is 1.
 double loglikratio_test(double null_loglik, double full_loglik);
 
-#endif // LOGLIKRATIO_TEST_
+#endif  // LOGLIKRATIO_TEST_

@@ -6,7 +6,7 @@ endif
 BIN_DIR = ./
 SRC_DIR = ./src/wand
 
-CXXFLAGS += -g -Wall -Wextra -pthread 
+CXXFLAGS += -g -Wall -Wextra -pthread -O3
 
 ifeq "$(shell uname)" "Darwin"
 CXXFLAGS += -arch x86_64

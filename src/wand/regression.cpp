@@ -15,108 +15,103 @@
  *    GNU General Public License for more details.
  */
 
-#include <vector>
-#include <algorithm>
-
-#include "smithlab_utils.hpp"
-
 #include "regression.hpp"
 
 #include <gsl/gsl_multimin.h>
 
+#include <algorithm>
+#include <vector>
+
+#include "smithlab_utils.hpp"
+
 using std::vector;
 
-void 
-Regression::set_response(const vector<size_t> &response_total,
-                          const vector<size_t> &response_meth) {
+void Regression::set_response(
+    const vector<size_t>& response_total,
+    const vector<size_t>& response_meth) {
   response_total_ = response_total;
   response_meth_ = response_meth;
 }
 
-double 
-Regression::p(size_t sample, const gsl_vector *parameters) const {
+double Regression::p(size_t sample, const gsl_vector* parameters) const {
   double dot_prod = 0;
 
-  for(size_t factor = 0; factor < design_.num_factors(); ++factor)
-    dot_prod += design_(sample, factor)*gsl_vector_get(parameters, factor);
+  for (size_t factor = 0; factor < design_.num_factors(); ++factor)
+    dot_prod += design_(sample, factor) * gsl_vector_get(parameters, factor);
 
-  double p = exp(dot_prod)/(1 + exp(dot_prod));
-  
+  double p = exp(dot_prod) / (1 + exp(dot_prod));
+
   return p;
 }
 
-double 
-Regression::loglik(const gsl_vector *parameters) const {
+double Regression::loglik(const gsl_vector* parameters) const {
   double log_lik = 0;
 
-  //dispersion parameter phi is the last element of parameter vector 
-  const double dispersion_param = gsl_vector_get(parameters, 
-                                                  num_parameters_ - 1);
-  const double phi = exp(dispersion_param)/(1 + exp(dispersion_param));
+  // dispersion parameter phi is the last element of parameter vector
+  const double dispersion_param =
+      gsl_vector_get(parameters, num_parameters_ - 1);
+  const double phi = exp(dispersion_param) / (1 + exp(dispersion_param));
 
-  for(size_t s = 0; s < design_.num_samples(); ++s) {
+  for (size_t s = 0; s < design_.num_samples(); ++s) {
     const double n_s = response_total_[s];
     const double y_s = response_meth_[s];
     const double p_s = p(s, parameters);
 
-    for(int k = 0; k < y_s; ++k) {
-      log_lik += log((1 - phi)*p_s + phi*k);
+    for (int k = 0; k < y_s; ++k) {
+      log_lik += log((1 - phi) * p_s + phi * k);
     }
 
-    for(int k = 0; k < n_s - y_s; ++k) {
-      log_lik += log((1 - phi)*(1 - p_s) + phi*k);
+    for (int k = 0; k < n_s - y_s; ++k) {
+      log_lik += log((1 - phi) * (1 - p_s) + phi * k);
     }
 
-    for(int k = 0; k < n_s; ++k) {
-      log_lik -= log(1 + phi*(k - 1));
+    for (int k = 0; k < n_s; ++k) {
+      log_lik -= log(1 + phi * (k - 1));
     }
   }
 
   return log_lik;
 }
 
-void 
-Regression::gradient(const gsl_vector *parameters, gsl_vector *output) const {
+void Regression::gradient(const gsl_vector* parameters, gsl_vector* output)
+    const {
+  const double dispersion_param =
+      gsl_vector_get(parameters, num_parameters_ - 1);
 
-  const double dispersion_param = gsl_vector_get(parameters, 
-                                                  num_parameters_ - 1);
-  
-  const double phi = exp(dispersion_param)/(1 + exp(dispersion_param));
+  const double phi = exp(dispersion_param) / (1 + exp(dispersion_param));
 
-  for(size_t f = 0; f < num_parameters_; ++f) {
-
+  for (size_t f = 0; f < num_parameters_; ++f) {
     double deriv = 0;
 
-    for(size_t s = 0; s < design_.num_samples(); ++s) {
+    for (size_t s = 0; s < design_.num_samples(); ++s) {
       int n_s = response_total_[s];
       int y_s = response_meth_[s];
       double p_s = p(s, parameters);
-      
+
       double term = 0;
 
-      //a parameter linked to p
-      if(f < design_.num_factors()) {
-        double factor = (1 - phi)*p_s*(1 - p_s)*design_(s, f);
+      // a parameter linked to p
+      if (f < design_.num_factors()) {
+        double factor = (1 - phi) * p_s * (1 - p_s) * design_(s, f);
         if (factor == 0) continue;
 
-        for(int k = 0; k < y_s; ++k)
-          term += 1/((1 - phi)*p_s + phi*k);
+        for (int k = 0; k < y_s; ++k) term += 1 / ((1 - phi) * p_s + phi * k);
 
-        for(int k = 0; k < n_s - y_s; ++k)
-          term -= 1/((1 - phi)*(1 - p_s) + phi*k);
+        for (int k = 0; k < n_s - y_s; ++k)
+          term -= 1 / ((1 - phi) * (1 - p_s) + phi * k);
 
-        deriv += term*factor;
-      } else { // the parameter linked to phi
-        for(int k = 0; k < y_s; ++k)
-          term += (k - p_s)/((1 - phi)*p_s + phi*k);
-      
-        for(int k = 0; k < n_s - y_s; ++k)
-          term += (k - (1 - p_s))/((1 - phi)*(1 - p_s) + phi*k);
+        deriv += term * factor;
+      } else {  // the parameter linked to phi
+        for (int k = 0; k < y_s; ++k)
+          term += (k - p_s) / ((1 - phi) * p_s + phi * k);
 
-        for(int k = 0; k < n_s; ++k) {
-          term -= (k - 1)/(1 + phi*(k - 1));
+        for (int k = 0; k < n_s - y_s; ++k)
+          term += (k - (1 - p_s)) / ((1 - phi) * (1 - p_s) + phi * k);
+
+        for (int k = 0; k < n_s; ++k) {
+          term -= (k - 1) / (1 + phi * (k - 1));
         }
-        
+
         deriv += term * phi * (1 - phi);
       }
     }
@@ -125,29 +120,26 @@ Regression::gradient(const gsl_vector *parameters, gsl_vector *output) const {
   }
 }
 
-std::vector<double> 
-Regression::fitted_distribution_parameters() {
+std::vector<double> Regression::fitted_distribution_parameters() {
   vector<double> distribution_parameters;
 
-	for (size_t sample = 0; sample < design_.num_samples(); ++sample) {
+  for (size_t sample = 0; sample < design_.num_samples(); ++sample) {
     double sample_parameter = 0;
     for (size_t factor = 0; factor < design_.num_factors(); ++factor) {
-      sample_parameter += fitted_parameters_[factor]*design_(sample, factor); 
+      sample_parameter += fitted_parameters_[factor] * design_(sample, factor);
     }
     distribution_parameters.push_back(
-            exp(sample_parameter)/(1 + exp(sample_parameter)) );
-	}
+        exp(sample_parameter) / (1 + exp(sample_parameter)));
+  }
 
-	double phi_param = fitted_parameters_.back();
-	double phi = exp(phi_param)/(1 + exp(phi_param));
-	distribution_parameters.push_back(phi);
-  
+  double phi_param = fitted_parameters_.back();
+  double phi = exp(phi_param) / (1 + exp(phi_param));
+  distribution_parameters.push_back(phi);
+
   return distribution_parameters;
 }
 
-double
-Regression::min_methdiff(size_t test_factor) {
-  
+double Regression::min_methdiff(size_t test_factor) {
   vector<double> methdiffs;
 
   for (size_t sample = 0; sample < design_.num_samples(); ++sample) {
@@ -155,15 +147,15 @@ Regression::min_methdiff(size_t test_factor) {
       double full_parameter_sum = 0;
       double reduced_parameter_sum = 0;
       for (size_t factor = 0; factor < design_.num_factors(); ++factor) {
-        full_parameter_sum += 
-                          fitted_parameters_[factor]*design_(sample, factor); 
+        full_parameter_sum +=
+            fitted_parameters_[factor] * design_(sample, factor);
       }
-      reduced_parameter_sum = full_parameter_sum - 
-                              fitted_parameters_[test_factor];
-      const double full_pi = 
-                          exp(full_parameter_sum)/(1 + exp(full_parameter_sum));
-      const double reduced_pi = 
-                    exp(reduced_parameter_sum)/(1 + exp(reduced_parameter_sum));
+      reduced_parameter_sum =
+          full_parameter_sum - fitted_parameters_[test_factor];
+      const double full_pi =
+          exp(full_parameter_sum) / (1 + exp(full_parameter_sum));
+      const double reduced_pi =
+          exp(reduced_parameter_sum) / (1 + exp(reduced_parameter_sum));
       methdiffs.push_back(fabs(full_pi - reduced_pi));
     }
   }
@@ -171,7 +163,6 @@ Regression::min_methdiff(size_t test_factor) {
   return *std::min_element(methdiffs.begin(), methdiffs.end());
 }
 
-double
-Regression::log_fold_change(size_t factor) {
+double Regression::log_fold_change(size_t factor) {
   return fitted_parameters_[factor];
 }

@@ -24,98 +24,96 @@
  * (6) Lines should never exceed 80 characters
  */
 
-// This file contains the main function and is responsible for processing the 
+// This file contains the main function and is responsible for processing the
 // command line arguments and calling the wand pipeline.
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <iomanip>
-#include <vector>
-#include <string>
-#include <stdexcept>
 #include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 // smithlab headers
 #include "OptionParser.hpp"
 #include "smithlab_os.hpp"
-#include "smithlab_utils.hpp" //for SMITHLAB_exception
+#include "smithlab_utils.hpp"  //for SMITHLAB_exception
 
 // headers for local code
 #include "pipeline.hpp"
 
 // using block
-using std::string;
-using std::vector;
-using std::istringstream;
 using std::cerr;
 using std::endl;
+using std::istringstream;
+using std::string;
+using std::vector;
 
-int
-main(int argc, const char **argv) {
+int main(int argc, const char** argv) {
+  try {
+    string outfile;
+    string test_factor_name;
+    bool VERBOSE = false;
 
-try {
-  string outfile;
-  string test_factor_name;
-  bool VERBOSE = false;
-  
-  /****************** COMMAND LINE OPTIONS ********************/
-  OptionParser opt_parse(strip_path(argv[0]), "Egor's program",
-                           "<design-matrix> <data-matrix>");
-  opt_parse.add_opt("out", 'o', "output file (default: stdout)",
-                    false, outfile);
+    /****************** COMMAND LINE OPTIONS ********************/
+    OptionParser opt_parse(
+        strip_path(argv[0]),
+        "Egor's program",
+        "<design-matrix> <data-matrix>");
+    opt_parse
+        .add_opt("out", 'o', "output file (default: stdout)", false, outfile);
 
-  opt_parse.add_opt("verbose", 'v', "print more run info", false, VERBOSE);
+    opt_parse.add_opt("verbose", 'v', "print more run info", false, VERBOSE);
 
-  opt_parse.add_opt("factor", 'f', "a factor to test",
-                    true, test_factor_name);
+    opt_parse
+        .add_opt("factor", 'f', "a factor to test", true, test_factor_name);
 
-  vector<string> leftover_args;
-  opt_parse.parse(argc, argv, leftover_args);
-  if (argc == 1 || opt_parse.help_requested()) {
-    cerr << opt_parse.help_message() << endl
-         << opt_parse.about_message() << endl;
-    return EXIT_SUCCESS;
+    vector<string> leftover_args;
+    opt_parse.parse(argc, argv, leftover_args);
+    if (argc == 1 || opt_parse.help_requested()) {
+      cerr << opt_parse.help_message() << endl
+           << opt_parse.about_message() << endl;
+      return EXIT_SUCCESS;
+    }
+    if (opt_parse.about_requested()) {
+      cerr << opt_parse.about_message() << endl;
+      return EXIT_SUCCESS;
+    }
+    if (opt_parse.option_missing()) {
+      cerr << opt_parse.option_missing_message() << endl;
+      return EXIT_SUCCESS;
+    }
+    if (leftover_args.size() != 2) {
+      cerr << opt_parse.help_message() << endl;
+      return EXIT_SUCCESS;
+    }
+    const string design_filename(leftover_args.front());
+    const string table_filename(leftover_args.back());
+
+    /****************** END COMMAND LINE OPTIONS *****************/
+
+    std::ifstream design_file(design_filename.c_str());
+    if (!design_file)
+      throw SMITHLABException("could not open file: " + design_filename);
+
+    std::ifstream table_file(table_filename.c_str());
+    if (!table_file)
+      throw SMITHLABException("could not open file: " + table_filename);
+
+    std::ofstream of;
+    if (!outfile.empty()) of.open(outfile.c_str());
+    std::ostream out(outfile.empty() ? std::cout.rdbuf() : of.rdbuf());
+
+    wand(design_file, table_file, test_factor_name, out);
+  } catch (const SMITHLABException& e) {
+    cerr << e.what() << endl;
+    return EXIT_FAILURE;
+  } catch (std::bad_alloc& ba) {
+    cerr << "ERROR: could not allocate memory" << endl;
+    return EXIT_FAILURE;
   }
-  if (opt_parse.about_requested()) {
-    cerr << opt_parse.about_message() << endl;
-    return EXIT_SUCCESS;
-  }
-  if (opt_parse.option_missing()) {
-    cerr << opt_parse.option_missing_message() << endl;
-    return EXIT_SUCCESS;
-  }
-  if (leftover_args.size() != 2) {
-    cerr << opt_parse.help_message() << endl;
-    return EXIT_SUCCESS;
-  }
-  const string design_filename(leftover_args.front());
-  const string table_filename(leftover_args.back());
-
-  /****************** END COMMAND LINE OPTIONS *****************/
-  
-  std::ifstream design_file(design_filename.c_str());
-  if (!design_file)
-    throw SMITHLABException("could not open file: " + design_filename);
-    
-  std::ifstream table_file(table_filename.c_str());
-  if (!table_file)
-    throw SMITHLABException("could not open file: " + table_filename);
-  
-  std::ofstream of;
-  if (!outfile.empty()) of.open(outfile.c_str());
-  std::ostream out(outfile.empty() ? std::cout.rdbuf() : of.rdbuf());
-  
-  wand(design_file, table_file, test_factor_name, out);
-}
-catch (const SMITHLABException &e) {
-  cerr << e.what() << endl;
-  return EXIT_FAILURE;
-}
-catch (std::bad_alloc &ba) {
-  cerr << "ERROR: could not allocate memory" << endl;
-  return EXIT_FAILURE;
-}
 
   return EXIT_SUCCESS;
 }
